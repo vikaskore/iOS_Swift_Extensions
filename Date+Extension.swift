@@ -10,6 +10,26 @@ import Foundation
 import UIKit
 
 extension Date {
+    
+    init(milliseconds:Int64) {
+        self = Date(timeIntervalSince1970: TimeInterval(milliseconds / 1000))
+    }
+    
+    var millisecondsSince1970:Int64 {
+        return Int64((self.timeIntervalSince1970 * 1000.0).rounded())
+    }
+    
+    func getDateFromMilliseconds() -> String {
+        dateFormatter.timeZone = TimeZone.autoupdatingCurrent
+        dateFormatter.dateFormat = "dd MMM yyyy hh:mm a"
+        let strDate = dateFormatter.string(from: self)
+        return strDate
+    }
+    
+    static func getDateBefore(component: Calendar.Component = .year, _ years: Int = -8)-> Date {
+        return Calendar.current.date(byAdding: component, value: years, to: Date())!
+    }
+
     func toString(withFormat format: String = "dd-MM-yy") -> String {
         let dateFormatter = DateFormatter()
         //dateFormatter.locale = Locale(identifier: "fa-IR")
@@ -73,3 +93,17 @@ func stringFromDate(date: Date) -> String {
     return strDate
 }
 */
+ // Convert local time to UTC (or GMT)
+ func toGlobalTime() -> Date {
+     let timezone = TimeZone.current
+     let seconds = -TimeInterval(timezone.secondsFromGMT(for: self))
+     return Date(timeInterval: seconds, since: self)
+ }
+ 
+ // Convert UTC (or GMT) to local time
+ func toLocalTime() -> Date {
+     let timezone = TimeZone.current
+     let seconds = TimeInterval(timezone.secondsFromGMT(for: self))
+     return Date(timeInterval: seconds, since: self)
+ }
+

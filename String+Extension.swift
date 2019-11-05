@@ -10,6 +10,30 @@ import Foundation
 import UIKit
 
 extension String {
+    var isIPv4: Bool {
+        var sin = sockaddr_in()
+        return self.withCString({ cstring in inet_pton(AF_INET, cstring, &sin.sin_addr) }) == 1
+    }
+    
+    var isIPv6: Bool {
+        var sin6 = sockaddr_in6()
+        return self.withCString({ cstring in inet_pton(AF_INET6, cstring, &sin6.sin6_addr) }) == 1
+    }
+    
+    var isValidIPAddress: Bool {
+        return self.isIPv6 || self.isIPv4
+    }
+    
+    var trimText: String {
+        return self.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    }
+    
+    var isValidUserName: Bool {
+       let RegEx = "^\\w{7,18}$"
+       let Test = NSPredicate(format:"SELF MATCHES %@", RegEx)
+       return Test.evaluate(with: self)
+    }
+
     var isValidEmail: Bool {
         return NSPredicate(format: "SELF MATCHES %@", "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}").evaluate(with: self)
     }
@@ -156,6 +180,177 @@ extension String {
         return attribute
     }
     
+    var isAlphanumeric: Bool {
+        return range(of: "[^a-zA-Z0-9]", options: .regularExpression) == nil
+    }
+    
+    var isAlphaOnly: Bool{
+        let allowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
+        let allowedCharacterSet = CharacterSet(charactersIn: allowedCharacters)
+        let typedCharacterSet = CharacterSet(charactersIn: self)
+        let alphabet = allowedCharacterSet.isSuperset(of: typedCharacterSet)
+        return alphabet
+    }
+    
+    var isNumeric: Bool {
+        return CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: self))
+    }
+    
+    var isValidPinCode: Bool {
+        return !self.isEmpty && self.isNumeric && self.count == 6
+    }
+    
+    public func firstCharacters(separator: String = "") -> String {
+        var str = ""
+        let acronyms = separator.components(separatedBy: " ")
+        guard acronyms.count > 1 else { return separator }
+        acronyms.forEach { (str1) in
+            if let char1 = str1.first {
+                str.append(char1)
+            }
+        }
+        return str.isEmpty ? separator : str
+    }
+    
+    func camelCaseToWords() -> String {
+        
+        return unicodeScalars.reduce("") {
+            if CharacterSet.uppercaseLetters.contains($1) {
+                return ($0 + " " + String($1))
+            } else {
+                return $0 + String($1)
+            }
+        }
+    }
+    
+    func addSpacesInCapitalLetters() -> String{
+        var string = self
+        
+        //indexOffset is needed because each time replaceSubrange is called, the resulting count is incremented by one (owing to the fact that a space is added to every capitalised letter)
+        var indexOffset = 0
+        for (index, character) in string.enumerated(){
+            let stringCharacter = String(character)
+            
+            //Evaluates to true if the character is a capital letter
+            if stringCharacter.lowercased() != stringCharacter{
+                guard index != 0 else { continue } //"ILoveSwift" should not turn into " I Love Swift"
+                let stringIndex = string.index(string.startIndex, offsetBy: index + indexOffset)
+                let endStringIndex = string.index(string.startIndex, offsetBy: index + 1 + indexOffset)
+                let range = stringIndex..<endStringIndex
+                indexOffset += 1
+                string.replaceSubrange(range, with: " \(stringCharacter)")
+            }
+        }
+        return string
+    }
+    
+    //Calculate time ago from given date
+       func timeAgoSinceDate(date:NSDate, numericDates:Bool) -> String {
+           let calendar = NSCalendar.current
+           let unitFlags: Set<Calendar.Component> = [.minute, .hour, .day, .weekOfYear, .month, .year, .second]
+           let now = NSDate()
+           let earliest = now.earlierDate(date as Date)
+           let latest = (earliest == now as Date) ? date : now
+           let components = calendar.dateComponents(unitFlags, from: earliest as Date,  to: latest as Date)
+           
+           if (components.year! >= 2) {
+               return "\(components.year!) years ago"
+           } else if (components.year! >= 1){
+               if (numericDates){
+                   return "1 year ago"
+               } else {
+                   return "Last year"
+               }
+           } else if (components.month! >= 2) {
+               return "\(components.month!) months ago"
+           } else if (components.month! >= 1){
+               if (numericDates){
+                   return "1 month ago"
+               } else {
+                   return "Last month"
+               }
+           } else if (components.weekOfYear! >= 2) {
+               return "\(components.weekOfYear!) weeks ago"
+           } else if (components.weekOfYear! >= 1){
+               if (numericDates){
+                   return "1 week ago"
+               } else {
+                   return "Last week"
+               }
+           } else if (components.day! >= 2) {
+               return "\(components.day!) days ago"
+           } else if (components.day! >= 1){
+               if (numericDates){
+                   return "1 day ago"
+               } else {
+                   return "Yesterday"
+               }
+           } else if (components.hour! >= 2) {
+               return "\(components.hour!) hours ago"
+           } else if (components.hour! >= 1){
+               if (numericDates){
+                   return "1 hour ago"
+               } else {
+                   return "An hour ago"
+               }
+           } else if (components.minute! >= 2) {
+               return "\(components.minute!) minutes ago"
+           } else if (components.minute! >= 1){
+               if (numericDates){
+                   return "1 minute ago"
+               } else {
+                   return "A minute ago"
+               }
+           } else if (components.second! >= 3) {
+               return "\(components.second!) seconds ago"
+           } else {
+               return "Just now"
+           }
+           
+       }
+
+       // MARK:- Localization
+       // Localised string for different languages
+       var localized: String {
+           if let languageCode = (UserData.returnValue(.appLanguage) as? [String])?.first, let languageDirectoryPath = Bundle.main.path(forResource: languageCode, ofType: "lproj"), let custBundle = Bundle.init(path: languageDirectoryPath) {
+               return NSLocalizedString(self, tableName: nil, bundle: custBundle, value: "", comment: "")
+           }
+           return NSLocalizedString(self, tableName: nil, bundle: Bundle.main, value: "", comment: "")
+       }
+       
+       /// Height of TextView
+       func heightWithConstrainedWidth(width: CGFloat, font: UIFont) -> CGFloat {
+           let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
+           let boundingBox = self.boundingRect(with: constraintRect, options: [.usesFontLeading, .usesLineFragmentOrigin], attributes: [NSAttributedString.Key.font: font], context: nil)
+           
+           return boundingBox.height
+       }
+       
+       func emojiToImage() -> UIImage? {
+           let size = CGSize(width: 30, height: 35)
+           UIGraphicsBeginImageContextWithOptions(size, false, 0)
+           UIColor.clear.set()
+           let rect = CGRect(origin: CGPoint(), size: size)
+           UIRectFill(CGRect(origin: CGPoint(), size: size))
+           (self as NSString).draw(in: rect, withAttributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 30)])
+           let image = UIGraphicsGetImageFromCurrentImageContext()
+           UIGraphicsEndImageContext()
+           return image
+       }
+       
+       /// Encode And Decode Emoji Code To string and vise-varsa
+       func decode() -> String {
+           let data = self.data(using: .utf8) ?? Data()
+           return String(data: data, encoding: .nonLossyASCII) ?? self
+       }
+       
+       func encode() -> String {
+           let data = self.data(using: .nonLossyASCII, allowLossyConversion: true)!
+           return String(data: data, encoding: .utf8) ?? ""
+       }
+       
+
+    
     // Convert string to date
     func toDate(withFormat format: String = "yyyy-MM-dd")-> Date?{
         let dateFormatter = DateFormatter()
@@ -163,6 +358,15 @@ extension String {
         //dateFormatter.locale = Locale(identifier: "fa-IR")
         //dateFormatter.timeZone = TimeZone(identifier: "Asia/Tehran")
         //dateFormatter.calendar = Calendar(identifier: .persian)
+        dateFormatter.dateFormat = format
+        let date = dateFormatter.date(from: self)
+        
+        return date
+    }
+    
+    func toGlobalDate(withFormat format: String = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")-> Date? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.calendar = Calendar(identifier: .gregorian)
         dateFormatter.dateFormat = format
         let date = dateFormatter.date(from: self)
         
