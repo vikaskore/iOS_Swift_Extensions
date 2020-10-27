@@ -6,7 +6,6 @@
 //  Copyright © 2019 Vikas Kore Software. All rights reserved.
 //
 
-import Foundation
 import UIKit
 
 extension Date {
@@ -26,7 +25,7 @@ extension Date {
         return strDate
     }
     
-    static func getDateBefore(component: Calendar.Component = .year, _ years: Int = -8)-> Date {
+    func getDateBefore(component: Calendar.Component = .year, _ years: Int = -8)-> Date {
         return Calendar.current.date(byAdding: component, value: years, to: Date())!
     }
 
@@ -107,3 +106,62 @@ func stringFromDate(date: Date) -> String {
      return Date(timeInterval: seconds, since: self)
  }
 
+//----------------
+
+var year: Int? {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year], from: self)
+        return components.year
+    }
+    
+    func dateString(format: String = "EEEE, MMM. dd") -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(abbreviation: "CST")
+        formatter.dateStyle = .long
+        formatter.dateFormat = format
+        return formatter.string(from: self)
+    }
+    
+    func dateStringWithoutTimeZone(format: String = "EEEE, MMM. dd") -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateStyle = .long
+        formatter.dateFormat = format
+        return formatter.string(from: self)
+    }
+    func dateStringWithUTCTimeZone(format: String = "EEEE, MMM. dd") -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        formatter.dateStyle = .long
+        formatter.dateFormat = format
+        return formatter.string(from: self)
+    }
+    
+    
+    var utc: String {
+        let formatter = ISO8601DateFormatter()
+        return formatter.string(from: self)
+    }
+    
+    func timeString(format: String = "h:mma") -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(abbreviation: "CST")
+        formatter.dateFormat = format
+        return formatter.string(from: self)
+    }
+    
+    func dayOfWeek() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEEE"
+        return dateFormatter.string(from: self).capitalized
+    }
+    
+    func monthAndYear() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM yyyy"
+        return dateFormatter.string(from: self).capitalized
+    }
+    
