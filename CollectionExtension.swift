@@ -1,9 +1,9 @@
 //
-//  CollectionExtension.swift
-//  Kum-n-GoLoyaltyApp
+//  Collection+Extension.swift
+//  Demo
 //
-//  Created by Satyadev Chauhan on 22/07/19.
-//  Copyright © 2019 Mobiquity, Inc. All rights reserved.
+//  Created by VikasK on 23/08/19.
+//  Copyright © 2019 Vikas Kore Software. All rights reserved.
 //
 
 import UIKit
