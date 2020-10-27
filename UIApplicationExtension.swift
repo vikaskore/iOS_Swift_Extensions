@@ -1,10 +1,3 @@
-//
-//  UIApplicationExtension.swift
-//  Kum-n-GoLoyaltyApp
-//
-//  Created by Satyadev Chauhan on 11/06/19.
-//  Copyright © 2019 Mobiquity, Inc. All rights reserved.
-//
 
 import UIKit
 
